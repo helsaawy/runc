@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -95,8 +96,15 @@ func ConfigureLogging(config Config) error {
 	switch config.LogFormat {
 	case "text":
 		// retain logrus's default.
+		f := &logrus.TextFormatter{}
+		f.TimestampFormat = time.RFC3339Nano
+		f.FullTimestamp = true
+		logrus.SetFormatter(f)
 	case "json":
-		logrus.SetFormatter(new(logrus.JSONFormatter))
+		f := &logrus.JSONFormatter{}
+		f.TimestampFormat = time.RFC3339Nano
+		f.DisableHTMLEscape = true
+		logrus.SetFormatter(f)
 	default:
 		return fmt.Errorf("unknown log-format %q", config.LogFormat)
 	}
