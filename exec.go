@@ -11,6 +11,7 @@ import (
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/utils"
 	"github.com/opencontainers/runtime-spec/specs-go"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
@@ -140,6 +141,11 @@ func getSubCgroupPaths(args []string) (map[string]string, error) {
 }
 
 func execProcess(context *cli.Context) (int, error) {
+
+	if err := os.WriteFile("/proc/self/sched", []byte("0"), 0666); err != nil {
+		logrus.WithError(err).Warning("could not reset /proc/self/sched")
+	}
+
 	container, err := getContainer(context)
 	if err != nil {
 		return -1, err
@@ -185,7 +191,25 @@ func execProcess(context *cli.Context) (int, error) {
 		preserveFDs:     context.Int("preserve-fds"),
 		subCgroupPaths:  cgPaths,
 	}
-	return r.run(p)
+	i, err := r.run(p)
+
+	if d, err := os.ReadFile("/proc/self/stat"); err == nil {
+		logrus.Info("exec self stat:\n" + string(d))
+	}
+
+	if d, err := os.ReadFile("/proc/self/sched"); err == nil {
+		logrus.Info("exec self sched:\n" + string(d))
+	}
+
+	if d, err := os.ReadFile("/proc/self/schedstat"); err == nil {
+		logrus.Info("exec self sched stat:\n" + string(d))
+	}
+
+	if d, err := os.ReadFile("/proc/schedstat"); err == nil {
+		logrus.Info("exec proc sched stat:\n" + string(d))
+	}
+
+	return i, err
 }
 
 func getProcess(context *cli.Context, bundle string) (*specs.Process, error) {

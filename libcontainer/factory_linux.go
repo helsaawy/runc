@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"runtime/debug"
 	"strconv"
+	"time"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/moby/sys/mountinfo"
@@ -275,6 +276,7 @@ func (l *LinuxFactory) Type() string {
 // StartInitialization loads a container by opening the pipe fd from the parent to read the configuration and state
 // This is a low level implementation detail of the reexec and should not be consumed externally
 func (l *LinuxFactory) StartInitialization() (err error) {
+	logrus.Debug("StartInitialization start ", time.Now().Format(time.RFC3339Nano))
 	// Get the INITPIPE.
 	envInitPipe := os.Getenv("_LIBCONTAINER_INITPIPE")
 	pipefd, err := strconv.Atoi(envInitPipe)
@@ -342,6 +344,7 @@ func (l *LinuxFactory) StartInitialization() (err error) {
 		}
 	}()
 
+	logrus.Debug("StartInitialization pre new container init ", time.Now().Format(time.RFC3339Nano))
 	i, err := newContainerInit(it, pipe, consoleSocket, fifofd, logPipeFd, mountFds)
 	if err != nil {
 		return err

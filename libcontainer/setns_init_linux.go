@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/opencontainers/selinux/go-selinux"
 	"github.com/sirupsen/logrus"
@@ -30,6 +31,7 @@ func (l *linuxSetnsInit) getSessionRingName() string {
 }
 
 func (l *linuxSetnsInit) Init() error {
+	logrus.Debug("setns_init: start ", time.Now().Format(time.RFC3339Nano))
 	if !l.config.Config.NoNewKeyring {
 		if err := selinux.SetKeyLabel(l.config.ProcessLabel); err != nil {
 			return err
@@ -95,7 +97,7 @@ func (l *linuxSetnsInit) Init() error {
 			return err
 		}
 	}
-	logrus.Debugf("setns_init: about to exec")
+	logrus.Debug("setns_init: about to exec ", time.Now().Format(time.RFC3339Nano))
 	// Close the log pipe fd so the parent's ForwardLogs can exit.
 	if err := unix.Close(l.logFd); err != nil {
 		return &os.PathError{Op: "close log pipe", Path: "fd " + strconv.Itoa(l.logFd), Err: err}

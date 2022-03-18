@@ -48,7 +48,7 @@ func processEntry(text []byte, logger *logrus.Logger) {
 		Msg   string       `json:"msg"`
 	}
 	if err := json.Unmarshal(text, &jl); err != nil {
-		logrus.Errorf("failed to decode %q to json: %v", text, err)
+		logrus.Errorf(string(text))
 		return
 	}
 

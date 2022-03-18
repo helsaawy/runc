@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/opencontainers/runc/libcontainer/seccomp"
 	"github.com/opencontainers/runtime-spec/specs-go"
@@ -199,8 +200,15 @@ func configLogrus(context *cli.Context) error {
 		// do nothing
 	case "text":
 		// do nothing
+		f := &logrus.TextFormatter{}
+		f.TimestampFormat = time.RFC3339Nano
+		f.FullTimestamp = true
+		logrus.SetFormatter(f)
 	case "json":
-		logrus.SetFormatter(new(logrus.JSONFormatter))
+		f := &logrus.JSONFormatter{}
+		f.DisableHTMLEscape = true
+		f.TimestampFormat = time.RFC3339Nano
+		logrus.SetFormatter(f)
 	default:
 		return errors.New("invalid log-format: " + f)
 	}

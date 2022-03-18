@@ -484,6 +484,15 @@ func (c *linuxContainer) newParentProcess(p *Process) (parentProcess, error) {
 func (c *linuxContainer) commandTemplate(p *Process, childInitPipe *os.File, childLogPipe *os.File) *exec.Cmd {
 	cmd := exec.Command(c.initPath, c.initArgs[1:]...)
 	cmd.Args[0] = c.initArgs[0]
+	// logrus.Infof("original: %s (%q)", cmd.String(), c.initArgs)
+	// if !p.Init {
+	// 	cmd.Args[0] = "/usr/bin/runc"
+	// 	a := append([]string{"-o", "/run/strace.log", "-ttTrfC"}, cmd.Args...)
+	// 	cmd = exec.Command("/bin/strace", a...)
+	// }
+
+	// logrus.Info("running: ", cmd.String())
+
 	cmd.Stdin = p.Stdin
 	cmd.Stdout = p.Stdout
 	cmd.Stderr = p.Stderr
@@ -492,6 +501,10 @@ func (c *linuxContainer) commandTemplate(p *Process, childInitPipe *os.File, chi
 		cmd.SysProcAttr = &unix.SysProcAttr{}
 	}
 	cmd.Env = append(cmd.Env, "GOMAXPROCS="+os.Getenv("GOMAXPROCS"))
+	if !p.Init {
+		cmd.Stderr = childLogPipe
+		cmd.Env = append(cmd.Env, "GODEBUG=inittrace=1,schedtrace=5")
+	}
 	cmd.ExtraFiles = append(cmd.ExtraFiles, p.ExtraFiles...)
 	if p.ConsoleSocket != nil {
 		cmd.ExtraFiles = append(cmd.ExtraFiles, p.ConsoleSocket)
