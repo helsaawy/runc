@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package libcontainer
@@ -394,6 +395,19 @@ func (c *linuxContainer) start(process *Process) (retErr error) {
 				}
 				return err
 			}
+		}
+	} else {
+		logrus.Info("starting strace for non init process")
+		p, err := process.Pid()
+		if err != nil {
+			logrus.WithError(err).Warning("could not get error")
+		} else {
+			sc := exec.Command("strace", "-o", "/run/strace.log", "-ttTrfCw", "-p", strconv.Itoa(p))
+			logrus.Info("strace command: ", sc.String())
+			go func() {
+				sc.StdinPipe()
+				sc.Run()
+			}()
 		}
 	}
 	return nil
