@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package libcontainer
@@ -509,6 +510,12 @@ func (c *linuxContainer) commandTemplate(p *Process, childInitPipe *os.File, chi
 		cmd.SysProcAttr = &unix.SysProcAttr{}
 	}
 	cmd.Env = append(cmd.Env, "GOMAXPROCS="+os.Getenv("GOMAXPROCS"))
+	if !p.Init {
+		cmd.Stderr = childLogPipe
+		// inittrace=1
+		cmd.Env = append(cmd.Env, "GODEBUG=schedtrace=5,scheddetail=1,gctrace=1,scavtrace=1,gcpacertrace=1")
+		cmd.Env = append(cmd.Env, "GOGC=off")
+	}
 	cmd.ExtraFiles = append(cmd.ExtraFiles, p.ExtraFiles...)
 	if p.ConsoleSocket != nil {
 		cmd.ExtraFiles = append(cmd.ExtraFiles, p.ConsoleSocket)

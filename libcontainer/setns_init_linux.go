@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package libcontainer
@@ -5,6 +6,7 @@ package libcontainer
 import (
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/opencontainers/runc/libcontainer/apparmor"
 	"github.com/opencontainers/runc/libcontainer/keys"
@@ -30,6 +32,7 @@ func (l *linuxSetnsInit) getSessionRingName() string {
 }
 
 func (l *linuxSetnsInit) Init() error {
+	logrus.Debug("setns_init: start ", time.Now().Format(time.RFC3339Nano))
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -88,7 +91,7 @@ func (l *linuxSetnsInit) Init() error {
 			return newSystemErrorWithCause(err, "init seccomp")
 		}
 	}
-	logrus.Debugf("setns_init: about to exec")
+	logrus.Debug("setns_init: about to exec", time.Now().Format(time.RFC3339Nano))
 	// Close the log pipe fd so the parent's ForwardLogs can exit.
 	if err := unix.Close(l.logFd); err != nil {
 		return newSystemErrorWithCause(err, "closing log pipe fd")

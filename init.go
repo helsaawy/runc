@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/logs"
@@ -14,9 +15,11 @@ import (
 )
 
 func init() {
+	pre := time.Now()
 	if len(os.Args) > 1 && os.Args[1] == "init" {
 		runtime.GOMAXPROCS(1)
 		runtime.LockOSThread()
+		pst := time.Now()
 
 		level := os.Getenv("_LIBCONTAINER_LOGLEVEL")
 		logLevel, err := logrus.ParseLevel(level)
@@ -37,7 +40,8 @@ func init() {
 		if err != nil {
 			panic(fmt.Sprintf("libcontainer: failed to configure logging: %v", err))
 		}
-		logrus.Debug("child process in init()")
+		logrus.Debugf("child process in init(), locking from %s to %s", pre.Format(time.RFC3339Nano), pst.Format(time.RFC3339Nano))
+		logrus.Debugf("child process env %q", os.Environ())
 	}
 }
 
